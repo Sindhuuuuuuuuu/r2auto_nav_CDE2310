@@ -20,8 +20,8 @@ class AMG8833Node(Node):
 		self.timer = self.create_timer(1.0, self.read_publish_temperature)
 
 		# Motor GPIO setup
-		#self.motor_pins = [22, 23, 25, 24] # BCM pins
-		self.motor_pins = [15, 16, 22, 18] # board pins
+		self.motor_pins = [22, 23, 25, 24] # BCM pins
+		#self.motor_pins = [15, 16, 22, 18] # board pins
 		for pin in self.motor_pins:
 			GPIO.setup(pin, GPIO.OUT)
 
@@ -32,19 +32,14 @@ class AMG8833Node(Node):
 		self.servo_pwm = GPIO.PWM(self.servo_pin, 50)  # 50Hz
 		self.servo_pwm.start(2.5)  # Neutral position
 
-	def forward(self, duration=2):
-		# GPIO.output(22, True)
-		# GPIO.output(23, False)
-		# GPIO.output(25, True)
-		# GPIO.output(24, False)
-		GPIO.output(15, True)
-		GPIO.output(16, False)
+	def spin_start(self):
 		GPIO.output(22, True)
-		GPIO.output(18, False)
-		time.sleep(duration)
-		self.cleanup_motors()
+		GPIO.output(23, True)
+		GPIO.output(25, False)
+		GPIO.output(24, False)
+		# self.spin_stop()
 
-	def cleanup_motors(self):
+	def spin_stop(self):
 		for pin in self.motor_pins:
 			GPIO.output(pin, False)
 
@@ -79,8 +74,15 @@ class AMG8833Node(Node):
 		if (max_element>30):
 			if max_avg_col_index in [2, 3, 4, 5]:
 				print(" Heat detected ahead! Moving forward and activating servo.")
-				self.forward(2)
-				self.activate_servo()
+				self.spin_start()
+				time.sleep(1)
+				self.activate_servo()	# first ball
+				time.sleep(1)
+				self.activate_servo()	# second ball
+				time.sleep(1)
+				self.activate_servo()	# third ball
+				time.sleep(1)
+				self.spin_stop()
 			elif max_avg_col_index in [0, 1]:
 				print("Heat is on the Right")
 			elif max_avg_col_index in [6, 7]:
@@ -106,3 +108,4 @@ def main(args=None):
 
 if __name__ == '__main__':
 	main()
+
